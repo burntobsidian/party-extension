@@ -20,41 +20,92 @@ export default class Server implements Party.Server {
       return;
     }
 
-    if (sender.state && "hostname" in sender.state && sender.state.hostname === message) {
+    const senderPreviousHostname = this.validateHostname(sender);
+    if (!senderPreviousHostname.success) return;
+
+    if (senderPreviousHostname.data === message) {
       sender.send(String(this.partyMembers[message]));
       return;
     }
 
-    const liveMembers = (this.partyMembers[message] ?? 0) + 1;
-    this.partyMembers[message] = liveMembers;
-
-    let previousHostname;
-    let previousLiveMembers;
-    if (sender.state && "hostname" in sender.state && typeof sender.state.hostname === "string") {
-      previousHostname = sender.state.hostname;
-      previousLiveMembers = this.partyMembers[previousHostname] - 1;
-      this.partyMembers[previousHostname] = previousLiveMembers;
-    }
+    const newHostnameLiveMembers = this.addMember(message);
+    const previousHostnameLiveMembers = this.removeMember(senderPreviousHostname.data);
 
     sender.setState({ hostname: message });
 
-    for (const connection of this.party.getConnections()) {
-      if (!(connection.state && "hostname" in connection.state)) return;
+    this.broadcast((conn) => {
+      const connHostname = this.validateHostname(conn);
+      if (!connHostname.success) return;
+      if (connHostname.data === senderPreviousHostname.data) return previousHostnameLiveMembers;
+      if (connHostname.data === message) return newHostnameLiveMembers;
+    });
+  }
 
-      if (connection.state.hostname === previousHostname) {
-        connection.send(String(previousLiveMembers));
-      } else if (connection.state.hostname === message) {
-        connection.send(String(liveMembers));
+  onClose(sender: Party.Connection<unknown>): void | Promise<void> {
+    console.log("closing connection", sender.id);
+
+    const senderHostname = this.validateHostname(sender);
+    if (!senderHostname.success) return;
+
+    const remainingMembers = this.removeMember(senderHostname.data);
+
+    this.broadcast((conn) => {
+      const connHostname = this.validateHostname(conn);
+      if (connHostname.success && connHostname.data === senderHostname.data) {
+        return remainingMembers;
+      }
+    });
+  }
+
+  onError(sender: Party.Connection<unknown>, error: Error): void | Promise<void> {
+    console.log("logging error", sender.id);
+
+    const senderHostname = this.validateHostname(sender);
+    if (!senderHostname.success) return;
+
+    const remainingMembers = this.removeMember(senderHostname.data);
+
+    this.broadcast((conn) => {
+      const connHostname = this.validateHostname(conn);
+      if (connHostname.success && connHostname.data === senderHostname.data) {
+        return remainingMembers;
+      }
+    });
+  }
+
+  removeMember(hostname: string): number {
+    const remainingMembers = this.partyMembers[hostname] - 1;
+    this.partyMembers[hostname] = remainingMembers;
+    return remainingMembers;
+  }
+
+  addMember(hostname: string): number {
+    const liveMembers = (this.partyMembers[hostname] ?? 0) + 1;
+    this.partyMembers[hostname] = liveMembers;
+    return liveMembers;
+  }
+
+  broadcast(callback: (connection: Party.Connection<unknown>) => number | undefined) {
+    for (const conn of this.party.getConnections()) {
+      const members = callback(conn);
+      if (members !== undefined) {
+        conn.send(String(members));
       }
     }
   }
 
-  onClose(connection: Party.Connection<unknown>): void | Promise<void> {
-    console.log("closing connection", connection.id);
-  }
-
-  onError(connection: Party.Connection<unknown>, error: Error): void | Promise<void> {
-    console.log("logging error", connection.id);
+  validateHostname(
+    connection: Party.Connection<unknown>
+  ): { success: true; data: string } | { success: false } {
+    if (
+      !!connection.state &&
+      "hostname" in connection.state &&
+      typeof connection.state.hostname === "string"
+    ) {
+      return { success: true, data: connection.state.hostname };
+    } else {
+      return { success: false };
+    }
   }
 }
 

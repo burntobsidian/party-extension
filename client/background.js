@@ -6,11 +6,14 @@ let partySocket;
 
 const connect = () => {
   disconnect();
+
   partySocket = new PartySocket({
     host: PARTYKIT_HOST,
-    room: "my-new-extension",
+    room: "party-members",
   });
+
   let keepAliveIntervalId;
+
   const keepAlive = () => {
     clearInterval(keepAliveIntervalId);
     keepAliveIntervalId = setInterval(
@@ -40,18 +43,9 @@ const disconnect = () => {
   partySocket.close();
 };
 
-let previousHostname;
 let previousTabId;
 
 chrome.webNavigation.onCompleted.addListener(async ({ tabId, url, frameId }) => {
-  // Set the action badge to the next state
-  // const reverseTabId = tabId.toString().split("").reverse().join("");
-  // await chrome.action.setBadgeText({
-  //   tabId,
-  //   text: reverseTabId,
-  // });
-
-  console.log(tabId, url, frameId);
   if (frameId !== 0) return;
 
   const { hostname } = new URL(url);
@@ -62,7 +56,6 @@ chrome.webNavigation.onCompleted.addListener(async ({ tabId, url, frameId }) => 
 
   if (previousTabId !== tabId) {
     partySocket.addEventListener("message", async (event) => {
-      // console.log(event);
       await chrome.action.setBadgeText({
         tabId,
         text: event.data,
@@ -71,19 +64,9 @@ chrome.webNavigation.onCompleted.addListener(async ({ tabId, url, frameId }) => 
     previousTabId = tabId;
   }
 
-  // if (previousHostname === hostname) {
-  //   console.log(await chrome.action.getBadgeText({ tabId }));
-  // await chrome.action.setBadgeText({
-  //   tabId,
-  //   text: await chrome.action.getBadgeText({ tabId }),
-  // });
-  // }
-
   partySocket.send(hostname);
-  previousHostname = hostname;
 });
 
 chrome.runtime.onSuspend.addListener(() => {
-  console.log("suspending extension");
   disconnect();
 });

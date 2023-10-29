@@ -1,6 +1,6 @@
 import { PartySocket } from "./partyserver-chunk-FTDRUZ5U.mjs";
 
-const PARTYKIT_HOST = "http://127.0.0.1:1999/";
+const PARTYKIT_HOST = "https://party-members.burntobsidian.partykit.dev/";
 
 let partySocket;
 

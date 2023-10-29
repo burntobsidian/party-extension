@@ -1,0 +1,9 @@
+{
+  "name": "server",
+  "main": "src/server.ts",
+  "compatibilityDate": "2023-10-27",
+  "serve": {
+    "path": "public",
+    "build": "src/client.ts"
+  }
+}

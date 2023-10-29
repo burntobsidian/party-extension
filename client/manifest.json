@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Hello Extensions of the world!",
+  "description": "Base Level Extension",
+  "version": "1.0",
+  "minimum_chrome_version": "116",
+  "permissions": ["activeTab", "webNavigation"],
+  "action": {
+    "default_icon": "images/hello_extensions.png"
+  },
+  "content_scripts": [
+    {
+      "js": ["scripts/content.js"],
+      "matches": ["https://*/*"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}

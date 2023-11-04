@@ -8,6 +8,6 @@ Soon on chrome web store
 ## TODO
 
 - [x] handle close and error scenarios on the server
-- [ ] handle active tab change/close
+- [x] handle active tab change/close
 - [ ] update extension icon
 - [ ] publish to chrome web store

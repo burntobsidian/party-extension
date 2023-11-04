@@ -9,5 +9,5 @@ Soon on chrome web store
 
 - [x] handle close and error scenarios on the server
 - [x] handle active tab change/close
-- [ ] update extension icon
+- [x] update extension icon
 - [ ] publish to chrome web store

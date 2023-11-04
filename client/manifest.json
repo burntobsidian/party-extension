@@ -4,7 +4,7 @@
   "description": "An extension that shows other party members on the same page.",
   "version": "1.0",
   "minimum_chrome_version": "116",
-  "permissions": ["activeTab", "webNavigation"],
+  "permissions": ["activeTab", "tabs"],
   "action": {
     "default_icon": "images/hello_extensions.png"
   },

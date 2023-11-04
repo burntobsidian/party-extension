@@ -44,10 +44,9 @@ const disconnect = () => {
 };
 
 let previousTabId;
+let previousPartySocketCallback;
 
-chrome.webNavigation.onCompleted.addListener(async ({ tabId, url, frameId }) => {
-  if (frameId !== 0) return;
-
+const tabUpdateHandler = (tabId, url) => {
   const { hostname } = new URL(url);
 
   if (!partySocket) {
@@ -55,18 +54,38 @@ chrome.webNavigation.onCompleted.addListener(async ({ tabId, url, frameId }) => 
   }
 
   if (previousTabId !== tabId) {
-    partySocket.addEventListener("message", async (event) => {
-      await chrome.action.setBadgeText({
-        tabId,
-        text: event.data,
-      });
-    });
+    partySocket.removeEventListener("message", previousPartySocketCallback);
+    const newPartySocketCallback = async (event) => {
+      try {
+        await chrome.action.setBadgeText({
+          tabId,
+          text: event.data,
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    partySocket.addEventListener("message", newPartySocketCallback);
     previousTabId = tabId;
+    previousPartySocketCallback = newPartySocketCallback;
   }
 
   partySocket.send(hostname);
-});
+};
 
 chrome.runtime.onSuspend.addListener(() => {
   disconnect();
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (!tab.active || changeInfo.status !== "complete") return;
+
+  tabUpdateHandler(tabId, tab.url);
+});
+
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+  const tab = await chrome.tabs.get(tabId);
+  if (!tab.active || !tab.url) return;
+
+  tabUpdateHandler(tabId, tab.url);
 });

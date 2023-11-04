@@ -3,10 +3,19 @@
   "name": "Party Members",
   "description": "An extension that shows other party members on the same page.",
   "version": "1.0",
-  "minimum_chrome_version": "116",
-  "permissions": ["activeTab", "tabs"],
   "action": {
-    "default_icon": "images/hello_extensions.png"
+    "default_icon": {
+      "16": "images/party-balloons-16.png",
+      "32": "images/party-balloons-32.png",
+      "48": "images/party-balloons-48.png"
+    }
+  },
+  "permissions": ["activeTab", "tabs"],
+  "icons": {
+    "16": "images/party-balloons-16.png",
+    "32": "images/party-balloons-32.png",
+    "48": "images/party-balloons-48.png",
+    "128": "images/party-balloons-128.png"
   },
   "background": {
     "service_worker": "background.js",

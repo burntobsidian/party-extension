@@ -21,7 +21,6 @@ export default class Server implements Party.Server {
     }
 
     const senderPreviousHostname = this.validateHostname(sender);
-    if (!senderPreviousHostname.success) return;
 
     if (senderPreviousHostname.data === message) {
       sender.send(String(this.partyMembers[message]));
@@ -29,7 +28,9 @@ export default class Server implements Party.Server {
     }
 
     const newHostnameLiveMembers = this.addMember(message);
-    const previousHostnameLiveMembers = this.removeMember(senderPreviousHostname.data);
+    const previousHostnameLiveMembers = senderPreviousHostname.success
+      ? this.removeMember(senderPreviousHostname.data)
+      : 0;
 
     sender.setState({ hostname: message });
 
@@ -96,7 +97,7 @@ export default class Server implements Party.Server {
 
   validateHostname(
     connection: Party.Connection<unknown>
-  ): { success: true; data: string } | { success: false } {
+  ): { success: true; data: string } | { success: false; data: undefined } {
     if (
       !!connection.state &&
       "hostname" in connection.state &&
@@ -104,7 +105,7 @@ export default class Server implements Party.Server {
     ) {
       return { success: true, data: connection.state.hostname };
     } else {
-      return { success: false };
+      return { success: false, data: undefined };
     }
   }
 }

@@ -3,11 +3,12 @@
 A Chrome extension that shows number of people partying on the same web domain.
 
 Install to party
-Soon on chrome web store
+
+[Checkout on Chrome Webstore](https://chromewebstore.google.com/detail/party-members/hikboagghnlhddimnbgninkelplbplla)
 
 ## TODO
 
 - [x] handle close and error scenarios on the server
 - [x] handle active tab change/close
 - [x] update extension icon
-- [ ] publish to chrome web store
+- [x] publish to chrome web store
